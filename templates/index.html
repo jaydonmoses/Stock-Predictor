@@ -1,31 +1,83 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <title>Stock Predictor</title>
     <style>
-     
+
     </style>
     <script>
+        window.onload = function () {
+            // Initialize available companies
+            let availableCompanies = ['Apple', 'Microsoft', 'Google', 'Amazon', 'Tesla'];
+
+            const resultBox = document.querySelector('.result-box');
+            const inputBox = document.getElementById('ticker');
+
+            inputBox.onkeyup = function () {
+                let result = [];
+                let input = inputBox.value;
+                if (input.length) {
+                    result = availableCompanies.filter((keyword) => {
+                        return keyword.toLowerCase().includes(input.toLowerCase());
+                    });
+                }
+                display(result);
+            }
+
+            function display(result) {
+                const content = result.map((item) => {
+                    return `<li>${item}</li>`;
+                }).join('');
+
+                resultBox.innerHTML = `<ul>${content}</ul>`;
+
+                // Add click event listeners after the HTML is injected
+                const allListItems = resultBox.querySelectorAll('li');
+                allListItems.forEach(item => {
+                    item.addEventListener('click', function (e) {
+                        e.preventDefault();       // stop form submission
+                        e.stopPropagation();      // stop bubbling
+                        inputBox.value = this.textContent;
+                        resultBox.innerHTML = '';
+                    });
+                });
+            }
+
+
+            function selectInput(element) {
+                inputBox.value = element.innerHTML;
+                resultBox.innerHTML = "";
+            }
+        };
+
+
     </script>
 </head>
-<body>
-<div class="container">
-    <h1>JM INVESTMENTS</h1>
-    <form method="POST" action="/">
-        <label for="ticker">Enter Stock Ticker:</label>
-        <input type="text" id="ticker" name="ticker" required>
-        <button type="submit">Predict</button>
-    </form>
 
-    {% if prediction %}
+<body>
+    <div class="container">
+        <h1>JM INVESTMENTS</h1>
+        <form method="POST" action="/">
+            <div class="autocomplete">
+                <label for="ticker">Enter Stock Company:</label>
+                <input type="text" id="ticker" placeholder="Type a company name..." name="ticker" autocomplete="off">
+                <button type="submit">Predict</button>
+            </div>
+            <div class="result-box"></div>
+
+        </form>
+
+        {% if prediction %}
         <h2>Prediction for {{ ticker }}:</h2>
         <p>{{ prediction }}</p>
-    {% endif %}
+        {% endif %}
 
-    {% if error %}
+        {% if error %}
         <p style="color: red;">{{ error }}</p>
-    {% endif %}
-</div>
+        {% endif %}
+    </div>
 </body>
+
 </html>
