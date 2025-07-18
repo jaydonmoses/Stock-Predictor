@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Stock Predictor</title>
+    <style>
+     
+    </style>
+    <script>
+    </script>
+</head>
+<body>
+<div class="container">
+    <h1>JM INVESTMENTS</h1>
+    <form method="POST" action="/">
+        <label for="ticker">Enter Stock Ticker:</label>
+        <input type="text" id="ticker" name="ticker" required>
+        <button type="submit">Predict</button>
+    </form>
+
+    {% if prediction %}
+        <h2>Prediction for {{ ticker }}:</h2>
+        <p>{{ prediction }}</p>
+    {% endif %}
+
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+</div>
+</body>
+</html>

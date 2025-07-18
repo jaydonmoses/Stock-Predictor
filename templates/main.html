@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Prediction</title>
+</head>
+<body>
+    <h1>Stock Prediction for {{ ticker }}</h1>
+    {% if prediction %}
+        <p>Predicted Next Close: {{ prediction }}</p>
+        <p>Direction: {{ direction }}</p>
+    {% else %}
+        <p>No prediction available for {{ ticker }}.</p>
+    {% endif %}
+</body>
+</html>
