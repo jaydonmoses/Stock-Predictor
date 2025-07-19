@@ -8,59 +8,7 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-
-        /* Autocomplete specific styles */
-        .autocomplete-wrapper {
-            position: relative;
-            width: 100%;
-            /* Make it fill the parent width */
-        }
-
-        #ticker {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            font-size: 16px;
-            border-radius: 4px;
-        }
-
-        .suggestions {
-            position: absolute;
-            background: white;
-            border: 1px solid #ccc;
-            border-top: none;
-            max-height: 200px;
-            overflow-y: auto;
-            width: 100%;
-            z-index: 100;
-            border-radius: 0 0 4px 4px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .suggestion {
-            padding: 10px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-        }
-
-        .suggestion:hover {
-            background-color: #f0f0f0;
-        }
-
-        .suggestion img {
-            width: 24px;
-            height: 24px;
-            margin-right: 10px;
-            border-radius: 50%;
-            object-fit: contain;
-            /* Ensure logos fit without distortion */
-        }
-    </style>
+    <link rel="stylesheet" href="static/css/styles.css">
 </head>
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
@@ -104,50 +52,7 @@
         </div>
     </div>
 
-    <script>
-        // Pass the companies data from Flask to JavaScript
-        // Using JSON.parse to ensure robust parsing of the JSON string
-        const companiesString = '{{ companies | tojson | safe }}';
-        const companies = JSON.parse(companiesString);
-
-        const input = document.getElementById('ticker');
-        const suggestions = document.getElementById('suggestions');
-
-        input.addEventListener('input', () => {
-            const value = input.value.toLowerCase();
-            suggestions.innerHTML = ''; // Clear previous suggestions
-
-            if (!value) {
-                return; // Don't show suggestions if input is empty
-            }
-
-            const matches = companies.filter(company =>
-                company.name.toLowerCase().includes(value) ||
-                company.ticker.toLowerCase().includes(value)
-            ).slice(0, 10); // Limit to top 10 matches
-
-            matches.forEach(company => {
-                const div = document.createElement('div');
-                div.classList.add('suggestion');
-                // Use the static path for logos in JS, with onerror for fallback
-                const logoSrc = `/static/logos/${company.ticker}.png`;
-                div.innerHTML = `<img src="${logoSrc}" alt="${company.name} Logo" onerror="this.onerror=null;this.src='/static/logos/default.png';" loading="lazy"> ${company.name} (${company.ticker})`;
-
-                div.addEventListener('click', () => {
-                    input.value = company.ticker; // Set input to ticker when suggestion is clicked
-                    suggestions.innerHTML = ''; // Hide suggestions
-                });
-                suggestions.appendChild(div);
-            });
-        });
-
-        // Hide suggestions when clicking outside the autocomplete wrapper
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.autocomplete-wrapper')) {
-                suggestions.innerHTML = '';
-            }
-        });
-    </script>
+    <script src="static/js/autocomplete.js"></script>
 </body>
 
 </html>
