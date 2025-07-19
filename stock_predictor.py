@@ -4,6 +4,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 from sklearn.impute import SimpleImputer
+import sys
+print(sys.version)
 
 def predict_next_close(ticker):
     # Download stock data
