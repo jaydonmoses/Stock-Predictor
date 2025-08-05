@@ -2,7 +2,10 @@ import pandas as pd
 import yfinance as yf
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import train_test_split
 from sklearn.impute import SimpleImputer
+import sys
+print(sys.version)
 
 def predict_next_close(ticker):
     # Download stock data
@@ -55,35 +58,4 @@ def predict_next_close(ticker):
     rf_model.fit(train_X, train_y)
     prediction = rf_model.predict(test_X)[0]
     last_close = y.iloc[-1]
-
-    naive_pred = y.iloc[-2]  # use yesterday's close as the naive prediction
-
-    metrics = evaluate_prediction(last_close, prediction, naive_pred)
-
-    return prediction, metrics
-
-def evaluate_prediction(y_true, y_pred, naive_pred):
-    """
-    Evaluates prediction performance using MAE, relative error, and naive baseline comparison.
-    
-    Parameters:
-        y_true (float): The actual close value.
-        y_pred (float): The predicted close value.
-        naive_pred (float): The baseline prediction (e.g., yesterday's close).
-    
-    Returns:
-        dict: Dictionary containing MAE, relative MAE, baseline MAE, and improvement.
-    """
-    mae = mean_absolute_error([y_true], [y_pred])
-    rel_mae = (mae / y_true) * 100 if y_true != 0 else float('inf')
-    naive_mae = mean_absolute_error([y_true], [naive_pred])
-    improvement = naive_mae - mae
-    beats_baseline = mae < naive_mae
-
-    return {
-        "mae": mae,
-        "relative_mae_percent": rel_mae,
-        "naive_mae": naive_mae,
-        "improvement": improvement,
-        "beats_baseline": beats_baseline
-    }
+    return prediction, last_close
