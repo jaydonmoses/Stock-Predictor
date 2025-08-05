@@ -1,50 +1,67 @@
-import csv
+import sqlite3
+import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from stock_predictor import predict_next_close
-from flask import send_from_directory
+from database import init_db, get_stock_data, get_company_info, popular_companies
 
 app = Flask(__name__)
+
+@app.route('/api/companies')
+def get_companies():
+    """API endpoint to get all companies for autocomplete"""
+    conn = sqlite3.connect('stocks.db')
+    companies = pd.read_sql_query("""
+        SELECT ticker, company_name as name
+        FROM companies
+    """, conn)
+    conn.close()
+    return jsonify(companies.to_dict('records'))
+
+# Initialize database on startup
+init_db()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     """Render the home page or handle ticker submission."""
-    companies = []
-
-    with open('companies.csv', newline='', encoding='utf-8') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            companies.append({
-                'ticker': row['ticker'],
-                'name': row['company name'],
-                'logo': row['logo']
-            })
-
+    companies = popular_companies()
+    # Rename company_name to name to match the template
+    for company in companies:
+        company['name'] = company.pop('company_name')
+    
     return render_template('index.html', companies=companies)
 
 
 @app.route('/main', methods=['GET'])
 def main():
     """Render the main page with stock prediction."""
-    ticker = request.args.get('ticker') # This could now be a company name or ticker
+    ticker = request.args.get('ticker')
+    print(ticker)
     if not ticker:
         return redirect(url_for('index'))
 
     prediction = None
     direction = None
     error_message = None
+    company_info = get_company_info(ticker)
+    print(company_info)
     
-    actual_ticker_for_prediction = ticker 
-
-    if not error_message:
-        result = predict_next_close(actual_ticker_for_prediction)
+    if company_info:
+        result = predict_next_close(ticker)
+        print(result)
         if result:
             prediction, last_close = result
             direction = "rise" if prediction > last_close else "fall or stay the same"
         else:
-            error_message = f"Could not get prediction for {actual_ticker_for_prediction}. It might not be a valid ticker or data is unavailable."
+            error_message = f"Could not get prediction for {ticker}. Data might be unavailable."
+    else:
+        error_message = f"Invalid ticker symbol: {ticker}"
     
-    # Pass the original input 'ticker' for display, and the prediction/error
-    return render_template('main.html', prediction=prediction, direction=direction, ticker=ticker, error=error_message)
+    return render_template('main.html', 
+                         prediction=prediction,
+                         direction=direction, 
+                         ticker=ticker,
+                         company=company_info,
+                         error=error_message)
 
 @app.after_request
 def add_header(response):
