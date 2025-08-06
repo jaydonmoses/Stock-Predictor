@@ -48,13 +48,15 @@
 3. Click "Add New" → "Project"
 4. Import your GitHub repository
 
+> **Note**: The vercel.json has been updated to fix the "builds/functions conflict" error by using the modern `rewrites` approach instead.
+
 ### 2. Configure Project Settings
 
 - **Framework Preset**: Other
 - **Root Directory**: `.` (leave default)
 - **Build Command**: Leave empty
 - **Output Directory**: Leave empty
-- **Install Command**: `pip install -r requirements.txt`
+- **Install Command**: Leave empty (Vercel auto-detects requirements.txt)
 
 ### 3. Environment Variables (Optional)
 

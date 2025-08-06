@@ -10,7 +10,5 @@ os.environ['VERCEL'] = '1'
 # Import the Flask app
 from app import app
 
-# Vercel requires the Flask app to be accessible as 'app'
-# This is the main entry point for Vercel
-if __name__ == "__main__":
-    app.run(debug=False)
+# This is the entry point that Vercel will use
+# The app variable will be automatically detected by Vercel
