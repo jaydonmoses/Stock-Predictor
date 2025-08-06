@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Dashboard - AI Stock Predictor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#3b82f6',
+                        'secondary': '#8b5cf6',
+                        'success': '#10b981',
+                        'danger': '#ef4444',
+                        'warning': '#f59e0b',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .portfolio-chart {
+            height: 300px !important;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="min-h-screen py-8 px-4">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="glass-effect rounded-2xl p-6 mb-8 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-success rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Portfolio Dashboard</h1>
+                            <p class="text-gray-600">AI-powered investment simulation</p>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('index') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-xl font-medium transition duration-200 shadow-lg hover:shadow-xl">
+                        ← Back to Home
+                    </a>
+                </div>
+            </div>
+
+            <!-- Portfolio Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <!-- Total Value -->
+                <div class="glass-effect rounded-2xl p-6 shadow-xl">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mr-4">
+                            <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 text-sm">Total Value</p>
+                            <p class="text-2xl font-bold text-gray-800">
+                                ${{ "{:,.2f}".format(portfolio.current.total_value) if portfolio.current else "10,000.00" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cash Balance -->
+                <div class="glass-effect rounded-2xl p-6 shadow-xl">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-success/10 rounded-xl flex items-center justify-center mr-4">
+                            <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 text-sm">Cash Balance</p>
+                            <p class="text-2xl font-bold text-success">
+                                ${{ "{:,.2f}".format(portfolio.current.cash_balance) if portfolio.current else "10,000.00" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stocks Value -->
+                <div class="glass-effect rounded-2xl p-6 shadow-xl">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-secondary/10 rounded-xl flex items-center justify-center mr-4">
+                            <svg class="w-6 h-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 text-sm">Stocks Value</p>
+                            <p class="text-2xl font-bold text-secondary">
+                                ${{ "{:,.2f}".format(portfolio.current.total_stocks_value) if portfolio.current else "0.00" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Return -->
+                <div class="glass-effect rounded-2xl p-6 shadow-xl">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 {% if portfolio.current and portfolio.current.daily_return >= 0 %}bg-success/10{% else %}bg-danger/10{% endif %} rounded-xl flex items-center justify-center mr-4">
+                            {% if portfolio.current and portfolio.current.daily_return >= 0 %}
+                            <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path>
+                            </svg>
+                            {% else %}
+                            <svg class="w-6 h-6 text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path>
+                            </svg>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="text-gray-600 text-sm">Daily Return</p>
+                            <p class="text-2xl font-bold {% if portfolio.current and portfolio.current.daily_return >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ "{:+.2f}%".format(portfolio.current.daily_return) if portfolio.current else "0.00%" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Holdings -->
+                <div class="glass-effect rounded-2xl p-6 shadow-xl">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        Current Holdings
+                    </h3>
+
+                    {% if portfolio.holdings %}
+                        <div class="space-y-4">
+                            {% for holding in portfolio.holdings %}
+                            <div class="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mr-3">
+                                        <span class="text-sm font-bold text-primary">{{ holding.ticker[:2] }}</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">{{ holding.ticker }}</p>
+                                        <p class="text-sm text-gray-600">{{ "{:.2f}".format(holding.shares) }} shares</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold text-gray-800">${{ "{:,.2f}".format(holding.current_value) }}</p>
+                                    <p class="text-sm {% if holding.total_return >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ "{:+.1f}%".format(holding.total_return) }}
+                                    </p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                            <p class="text-gray-600">No holdings yet</p>
+                            <p class="text-sm text-gray-500 mt-1">Start analyzing stocks to build your portfolio!</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Recent Trades -->
+                <div class="glass-effect rounded-2xl p-6 shadow-xl">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        Recent Trades
+                    </h3>
+
+                    {% if portfolio.recent_trades %}
+                        <div class="space-y-3">
+                            {% for trade in portfolio.recent_trades %}
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center">
+                                        <span class="{% if trade.action == 'BUY' %}bg-success text-white{% else %}bg-danger text-white{% endif %} text-xs font-bold px-2 py-1 rounded mr-2">
+                                            {{ trade.action }}
+                                        </span>
+                                        <span class="font-semibold text-gray-800">{{ trade.ticker }}</span>
+                                    </div>
+                                    <span class="text-sm text-gray-600">{{ trade.trade_date }}</span>
+                                </div>
+                                <div class="text-sm text-gray-600">
+                                    <p>{{ "{:.2f}".format(trade.shares) }} shares at ${{ "{:.2f}".format(trade.price) }}</p>
+                                    <p>Total: ${{ "{:,.2f}".format(trade.total_amount) }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            <p class="text-gray-600">No trades yet</p>
+                            <p class="text-sm text-gray-500 mt-1">Trades will appear here when you analyze stocks</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

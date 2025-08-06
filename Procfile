@@ -1,0 +1,1 @@
+web: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 2 --worker-class gthread --worker-tmp-dir /dev/shm --log-level info --timeout 120 --keep-alive 5 --max-requests 1000 --max-requests-jitter 100 --preload app:app

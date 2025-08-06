@@ -4,5 +4,3 @@ numpy
 pandas
 yfinance
 scikit-learn
-plotly
-shap

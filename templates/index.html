@@ -1,52 +1,332 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Prediction App</title>
-    <!-- Tailwind CSS CDN -->
+    <title>AI Stock Predictor</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#3b82f6',
+                        'secondary': '#8b5cf6',
+                        'success': '#10b981',
+                        'danger': '#ef4444',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .autocomplete-wrapper {
+            position: relative;
+        }
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 4px;
+        }
+        .suggestions div {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.2s;
+        }
+        .suggestions div:hover {
+            background: #f8fafc;
+        }
+        .suggestions div:last-child {
+            border-bottom: none;
+        }
+        .hero-icon {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
-
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-lg shadow-xl max-w-2xl w-full">
-        <h1 class="text-4xl font-bold text-gray-800 mb-8 text-center">Stock Prediction App</h1>
-
-        <!-- Search Form -->
-        <form method="POST" action="{{ url_for('index') }}" class="mb-8">
-            <label for="ticker" class="block text-gray-700 text-lg font-semibold mb-2">Search for a Company Ticker or
-                Name:</label>
-            <div class="flex items-center space-x-4">
-                <div class="autocomplete-wrapper flex-grow">
-                    <input type="text" id="ticker" name="ticker" placeholder="e.g., AAPL, Apple, Microsoft"
-                        class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-lg"
-                        autocomplete="off" required>
-                    <div class="suggestions" id="suggestions"></div>
+<body class="gradient-bg min-h-screen">
+    <div class="min-h-screen py-8 px-4">
+        <div class="max-w-6xl mx-auto">
+            <!-- Hero Section -->
+            <div class="text-center mb-12">
+                <div class="hero-icon w-24 h-24 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl">
+                    <svg class="w-12 h-12 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
                 </div>
-                <button type="submit"
-                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
-                    Get Prediction
-                </button>
+                <h1 class="text-5xl font-bold text-white mb-4">AI Stock Predictor</h1>
+                <p class="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
+                    Harness the power of machine learning to predict stock prices with advanced technical analysis and market insights.
+                </p>
             </div>
-        </form>
 
-        <!-- Company List -->
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Popular Companies</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for company in companies %}
-            <a href="{{ url_for('main', ticker=company.ticker) }}"
-                class="flex items-center p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition duration-200 ease-in-out transform hover:-translate-y-1">
-                <div>
-                    <p class="text-lg font-semibold text-gray-900">{{ company.name }}</p>
-                    <p class="text-sm text-gray-600">{{ company.ticker }}</p>
+            <!-- Search Section -->
+            <div class="glass-effect rounded-2xl p-8 mb-12 shadow-2xl max-w-4xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-2">Get Stock Prediction</h2>
+                    <p class="text-gray-600">Enter a ticker symbol or company name to analyze</p>
                 </div>
-            </a>
-            {% endfor %}
+
+                <form action="{{ url_for('main') }}" method="GET" class="space-y-6">
+                    <div class="autocomplete-wrapper max-w-2xl mx-auto">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                            <input 
+                                type="text" 
+                                id="ticker" 
+                                name="ticker" 
+                                placeholder="Search for stocks... (e.g., AAPL, Tesla, Microsoft)"
+                                class="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/20 transition duration-200"
+                                autocomplete="off" 
+                                required
+                            >
+                            <div class="suggestions" id="suggestions"></div>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button 
+                            type="submit"
+                            class="bg-primary hover:bg-primary/90 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:scale-105 flex items-center mx-auto"
+                        >
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Analyze Stock
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Portfolio Summary -->
+            {% if portfolio and portfolio.current %}
+            <div class="mb-12">
+                <div class="flex items-center justify-between mb-8">
+                    <h3 class="text-2xl font-bold text-white">Portfolio Summary</h3>
+                    <a href="{{ url_for('portfolio') }}" class="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-xl font-medium transition duration-200">
+                        View Details →
+                    </a>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Total Value -->
+                    <div class="glass-effect rounded-2xl p-6 text-center shadow-xl">
+                        <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-2">Total Value</h4>
+                        <p class="text-3xl font-bold text-primary">${{ "{:,.2f}".format(portfolio.current.total_value) }}</p>
+                        <p class="text-sm text-gray-600 mt-2">
+                            {% set profit = portfolio.current.total_value - 10000 %}
+                            <span class="{% if profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ "{:+.2f}%".format((profit / 10000) * 100) }} from start
+                            </span>
+                        </p>
+                    </div>
+
+                    <!-- Cash vs Stocks -->
+                    <div class="glass-effect rounded-2xl p-6 text-center shadow-xl">
+                        <div class="w-16 h-16 bg-success/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-2">Cash Balance</h4>
+                        <p class="text-3xl font-bold text-success">${{ "{:,.0f}".format(portfolio.current.cash_balance) }}</p>
+                        <p class="text-sm text-gray-600 mt-2">
+                            {{ "{:.0f}%".format((portfolio.current.cash_balance / portfolio.current.total_value) * 100) }} of portfolio
+                        </p>
+                    </div>
+
+                    <!-- Active Positions -->
+                    <div class="glass-effect rounded-2xl p-6 text-center shadow-xl">
+                        <div class="w-16 h-16 bg-secondary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-2">Stocks Value</h4>
+                        <p class="text-3xl font-bold text-secondary">${{ "{:,.0f}".format(portfolio.current.total_stocks_value) }}</p>
+                        <p class="text-sm text-gray-600 mt-2">
+                            {{ portfolio.holdings|length }} active positions
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Features Section -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-bold text-white text-center mb-8">Why Choose Our AI Predictor?</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="feature-card glass-effect rounded-2xl p-6 text-center shadow-xl">
+                        <div class="w-16 h-16 bg-success/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-2">Real-time Analysis</h4>
+                        <p class="text-gray-600 text-sm">Get instant predictions based on the latest market data and trends.</p>
+                    </div>
+
+                    <div class="feature-card glass-effect rounded-2xl p-6 text-center shadow-xl">
+                        <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-2">Advanced ML Models</h4>
+                        <p class="text-gray-600 text-sm">Powered by Random Forest algorithms and technical indicators.</p>
+                    </div>
+
+                    <div class="feature-card glass-effect rounded-2xl p-6 text-center shadow-xl">
+                        <div class="w-16 h-16 bg-secondary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-2">Visual Insights</h4>
+                        <p class="text-gray-600 text-sm">Interactive charts and feature importance analysis.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popular Companies Section -->
+            <div class="glass-effect rounded-2xl p-8 shadow-2xl">
+                <h3 class="text-2xl font-bold text-gray-800 text-center mb-8">Popular Stocks</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {% for company in companies %}
+                    <a href="{{ url_for('main', ticker=company.ticker) }}" 
+                       class="group block p-4 bg-gray-50 hover:bg-primary/5 rounded-xl transition duration-200 hover:shadow-lg">
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center mx-auto mb-3 transition duration-200 shadow-sm group-hover:shadow-md overflow-hidden">
+                                <img 
+                                    src="https://logo.clearbit.com/{{ company.ticker.lower().replace('/', '-') }}.com" 
+                                    alt="{{ company.ticker }} logo"
+                                    class="w-8 h-8 object-contain"
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                >
+                                <span class="text-lg font-bold text-primary hidden" style="display: none;">{{ company.ticker[:2] }}</span>
+                            </div>
+                            <p class="font-semibold text-gray-800 text-sm mb-1">{{ company.ticker }}</p>
+                            <p class="text-xs text-gray-600 truncate">{{ company.name }}</p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-12">
+                <p class="text-white/60 text-sm">
+                    Disclaimer: This is for educational purposes only. Not financial advice.
+                </p>
+            </div>
         </div>
     </div>
+
+    <!-- Autocomplete functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tickerInput = document.getElementById('ticker');
+            const suggestionsDiv = document.getElementById('suggestions');
+
+            tickerInput.addEventListener('input', async function() {
+                const query = this.value.trim();
+                
+                if (query.length < 2) {
+                    suggestionsDiv.innerHTML = '';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/companies');
+                    const companies = await response.json();
+                    
+                    const filtered = companies.filter(company => 
+                        company.ticker.toLowerCase().includes(query.toLowerCase()) ||
+                        company.name.toLowerCase().includes(query.toLowerCase())
+                    ).slice(0, 8);
+
+                    if (filtered.length > 0) {
+                        suggestionsDiv.innerHTML = filtered.map(company => 
+                            `<div onclick="selectCompany('${company.ticker}')">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-3 overflow-hidden shadow-sm">
+                                        <img 
+                                            src="https://logo.clearbit.com/${company.ticker.toLowerCase().replace('/', '-')}.com" 
+                                            alt="${company.ticker} logo"
+                                            class="w-6 h-6 object-contain"
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                        >
+                                        <span class="text-xs font-bold text-primary hidden" style="display: none;">${company.ticker.substr(0, 2)}</span>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">${company.ticker}</div>
+                                        <div class="text-sm text-gray-600">${company.name}</div>
+                                    </div>
+                                </div>
+                            </div>`
+                        ).join('');
+                    } else {
+                        suggestionsDiv.innerHTML = '<div class="text-gray-500 text-center py-4">No matches found</div>';
+                    }
+                } catch (error) {
+                    console.error('Error fetching companies:', error);
+                    suggestionsDiv.innerHTML = '';
+                }
+            });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!tickerInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                    suggestionsDiv.innerHTML = '';
+                }
+            });
+        });
+
+        function selectCompany(ticker) {
+            document.getElementById('ticker').value = ticker;
+            document.getElementById('suggestions').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
 
     <script src="static/js/script.js"></script>
 </body>
