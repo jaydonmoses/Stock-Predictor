@@ -3,10 +3,11 @@ import pandas as pd
 from datetime import datetime, timedelta
 import json
 from stock_predictor import predict_next_close
+from database_config import get_portfolio_db_path, get_db_path
 
 class Portfolio:
-    def __init__(self, db_path='portfolio.db'):
-        self.db_path = db_path
+    def __init__(self, db_path=None):
+        self.db_path = db_path or get_portfolio_db_path()
         self.init_portfolio_db()
     
     def init_portfolio_db(self):
@@ -189,7 +190,8 @@ class Portfolio:
     def simulate_daily_trade(self):
         """Simulate a daily trade based on model predictions."""
         # Get a random stock from our holdings or popular stocks
-        conn = sqlite3.connect('stocks.db')
+        stocks_db_path = get_db_path()
+        conn = sqlite3.connect(stocks_db_path)
         cursor = conn.cursor()
         
         # Get popular stocks for potential trades

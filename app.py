@@ -7,10 +7,20 @@ from portfolio import Portfolio
 
 app = Flask(__name__)
 
+# Configure the app based on environment
+import os
+from config import config
+
+config_name = 'vercel' if os.environ.get('VERCEL') else 'development'
+app.config.from_object(config[config_name])
+config[config_name].init_app(app)
+
 @app.route('/api/companies')
 def get_companies():
     """API endpoint to get all companies for autocomplete"""
-    conn = sqlite3.connect('stocks.db')
+    from database_config import get_db_path
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
     companies = pd.read_sql_query("""
         SELECT ticker, company_name as name
         FROM companies

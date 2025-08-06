@@ -1,25 +1,18 @@
 import sqlite3
 import pandas as pd
 import os
+from database_config import ensure_database_exists, get_db_path
 
 def init_db():
     """Initialize SQLite database and create tables from CSV files."""
-    # Create database connection
-    conn = sqlite3.connect('stocks.db')
-    
-    # Read CSV files into pandas DataFrames
-    companies_df = pd.read_csv('static/companies.csv')
-    stock_data_df = pd.read_csv('static/stock_data.csv')
-    
-    # Write DataFrames to SQLite
-    companies_df.to_sql('companies', conn, if_exists='replace', index=False)
-    stock_data_df.to_sql('stock_prices', conn, if_exists='replace', index=False)
-    
-    conn.close()
+    # Ensure database exists and return path
+    db_path = ensure_database_exists()
+    return db_path
 
 def get_stock_data(ticker):
     """Get stock price data for a specific ticker."""
-    conn = sqlite3.connect('stocks.db')
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
     query = f"""
     SELECT date, price, volume
     FROM stock_prices
@@ -33,7 +26,8 @@ def get_stock_data(ticker):
 
 def get_company_info(ticker):
     """Get company information for a specific ticker."""
-    conn = sqlite3.connect('stocks.db')
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
     query = """
     SELECT ticker, company_name, industry, sector
     FROM companies
@@ -45,7 +39,8 @@ def get_company_info(ticker):
 
 def popular_companies():
     """Get a list of popular companies based on market cap."""
-    conn = sqlite3.connect('stocks.db')
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
     query = """
     SELECT ticker, company_name, market_cap
     FROM companies
