@@ -1,6 +1,7 @@
-flask
+Flask
 gunicorn
 numpy
 pandas
 yfinance
 scikit-learn
+plotly
