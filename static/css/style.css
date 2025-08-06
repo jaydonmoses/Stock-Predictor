@@ -41,11 +41,10 @@ body {
     background-color: #f0f0f0;
 }
 
-.suggestion img {
-    width: 24px;
-    height: 24px;
-    margin-right: 10px;
-    border-radius: 50%;
-    object-fit: contain;
-    /* Ensure logos fit without distortion */
+.logo-wrapper {
+    flex-shrink: 0;
+}
+
+.logo-container {
+    flex-shrink: 0;
 }

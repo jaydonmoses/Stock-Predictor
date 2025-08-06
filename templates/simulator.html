@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Simulator - Fake Money Trading</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-gray-900">💰 Stock Simulator</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('index') }}" 
+                       class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">
+                        Back to Predictions
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Portfolio Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold">$</span>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Portfolio Value</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="total-value">
+                                    ${{ "%.2f"|format(summary.total_value if summary else 10000) }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold">💵</span>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Cash Balance</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="cash-balance">
+                                    ${{ "%.2f"|format(summary.cash_balance if summary else 10000) }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold">📈</span>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Stock Value</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="stock-value">
+                                    ${{ "%.2f"|format(summary.stock_value if summary else 0) }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Portfolio Performance Chart -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-lg font-medium text-gray-900 mb-4">Portfolio Performance</h2>
+                <div id="portfolio-chart" class="h-64"></div>
+            </div>
+
+            <!-- Trading Controls -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-lg font-medium text-gray-900 mb-4">Trading Controls</h2>
+                
+                <!-- Auto Trade Button -->
+                <div class="mb-6">
+                    <button id="auto-trade-btn" 
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
+                        🤖 Execute AI Trade
+                    </button>
+                    <p class="text-sm text-gray-500 mt-2">Let the AI make a trade based on predictions</p>
+                </div>
+
+                <!-- Manual Trading Form -->
+                <div class="border-t pt-6">
+                    <h3 class="text-md font-medium text-gray-900 mb-3">Manual Trading</h3>
+                    <form id="manual-trade-form" class="space-y-4">
+                        <div>
+                            <label for="trade-ticker" class="block text-sm font-medium text-gray-700">Ticker Symbol</label>
+                            <input type="text" id="trade-ticker" name="ticker" 
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                   placeholder="e.g., AAPL" required>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="trade-action" class="block text-sm font-medium text-gray-700">Action</label>
+                                <select id="trade-action" name="action" 
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="buy">Buy</option>
+                                    <option value="sell">Sell</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="trade-shares" class="block text-sm font-medium text-gray-700">Shares</label>
+                                <input type="number" id="trade-shares" name="shares" min="1" 
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                       placeholder="10" required>
+                            </div>
+                        </div>
+                        <button type="submit" 
+                                class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                            Execute Trade
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Holdings and Transactions -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+            <!-- Current Holdings -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-lg font-medium text-gray-900 mb-4">Current Holdings</h2>
+                <div id="holdings-list">
+                    {% if summary and summary.holdings %}
+                        {% for holding in summary.holdings %}
+                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                            <div class="flex items-center">
+                                <div class="logo-container w-8 h-8 mr-3 rounded-full bg-white shadow-sm flex items-center justify-center">
+                                    <img src="https://logo.clearbit.com/{{ holding[0]|lower }}.com" 
+                                         alt="{{ holding[0] }} Logo" 
+                                         class="w-6 h-6 rounded-full object-contain"
+                                         onerror="this.onerror=null;this.src='https://api.logo.dev/{{ holding[0]|upper }}?token=pk_X1RlL8nWQ8ykU9TvaXQYBQ&format=png&size=200';if(this.onerror){this.onerror=null;this.parentElement.innerHTML='<div class=\'w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-xs\'>{{ holding[0][:2] }}</div>';}" 
+                                         loading="lazy">
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ holding[0] }}</p>
+                                    <p class="text-sm text-gray-500">{{ "%.1f"|format(holding[1]) }} shares</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium text-gray-900">${{ "%.2f"|format(holding[4]) }}</p>
+                                <p class="text-sm text-gray-500">${{ "%.2f"|format(holding[2]) }} avg</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-gray-500 text-center py-4">No current holdings</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-lg font-medium text-gray-900 mb-4">Recent Transactions</h2>
+                <div id="transactions-list" class="space-y-2">
+                    {% if transactions %}
+                        {% for transaction in transactions %}
+                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                            <div class="flex items-center">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if transaction.action == 'buy' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ transaction.action.upper() }}
+                                </span>
+                                <div class="ml-3">
+                                    <p class="font-medium text-gray-900">{{ transaction.ticker }}</p>
+                                    <p class="text-sm text-gray-500">{{ transaction.shares }} shares</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium text-gray-900">${{ "%.2f"|format(transaction.total_cost) }}</p>
+                                <p class="text-sm text-gray-500">${{ "%.2f"|format(transaction.price) }}/share</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-gray-500 text-center py-4">No transactions yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alert-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="flex items-center">
+                <div id="alert-icon" class="flex-shrink-0 w-10 h-10 mx-auto"></div>
+                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="alert-title">
+                        Trade Result
+                    </h3>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-500" id="alert-message">
+                            Trade completed successfully
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button type="button" id="alert-close" 
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize portfolio chart
+        const chartData = {{ chart_data|tojson|safe }};
+        
+        if (chartData.dates && chartData.dates.length > 0) {
+            const portfolioTrace = {
+                x: chartData.dates,
+                y: chartData.values,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Total Value',
+                line: { color: '#6366f1' }
+            };
+
+            const layout = {
+                title: '',
+                xaxis: { title: 'Date' },
+                yaxis: { title: 'Portfolio Value ($)' },
+                margin: { l: 50, r: 50, t: 20, b: 50 },
+                showlegend: true
+            };
+
+            Plotly.newPlot('portfolio-chart', [portfolioTrace], layout, {responsive: true});
+        } else {
+            document.getElementById('portfolio-chart').innerHTML = '<p class="text-gray-500 text-center py-8">No performance data yet. Start trading to see your portfolio performance!</p>';
+        }
+
+        // Auto trade functionality
+        document.getElementById('auto-trade-btn').addEventListener('click', async function() {
+            this.disabled = true;
+            this.innerHTML = '⏳ Executing Trade...';
+            
+            try {
+                const response = await fetch('/api/simulate_trade', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                showAlert(result.success, result.message);
+                
+                if (result.success) {
+                    setTimeout(() => location.reload(), 2000);
+                }
+            } catch (error) {
+                showAlert(false, 'Error executing trade: ' + error.message);
+            } finally {
+                this.disabled = false;
+                this.innerHTML = '🤖 Execute AI Trade';
+            }
+        });
+
+        // Manual trade functionality
+        document.getElementById('manual-trade-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const tradeData = {
+                ticker: formData.get('ticker').toUpperCase(),
+                action: formData.get('action'),
+                shares: parseInt(formData.get('shares'))
+            };
+            
+            try {
+                const response = await fetch('/api/manual_trade', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(tradeData)
+                });
+                
+                const result = await response.json();
+                showAlert(result.success, result.message);
+                
+                if (result.success) {
+                    this.reset();
+                    setTimeout(() => location.reload(), 2000);
+                }
+            } catch (error) {
+                showAlert(false, 'Error executing trade: ' + error.message);
+            }
+        });
+
+        // Alert modal functions
+        function showAlert(success, message) {
+            const modal = document.getElementById('alert-modal');
+            const icon = document.getElementById('alert-icon');
+            const title = document.getElementById('alert-title');
+            const messageEl = document.getElementById('alert-message');
+            
+            if (success) {
+                icon.innerHTML = '<div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center"><span class="text-green-600 text-xl">✓</span></div>';
+                title.textContent = 'Trade Successful';
+            } else {
+                icon.innerHTML = '<div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center"><span class="text-red-600 text-xl">✗</span></div>';
+                title.textContent = 'Trade Failed';
+            }
+            
+            messageEl.textContent = message;
+            modal.classList.remove('hidden');
+        }
+
+        document.getElementById('alert-close').addEventListener('click', function() {
+            document.getElementById('alert-modal').classList.add('hidden');
+        });
+    </script>
+</body>
+</html>
