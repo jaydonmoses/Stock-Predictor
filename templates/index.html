@@ -39,6 +39,11 @@
             {% for company in companies %}
             <a href="{{ url_for('main', ticker=company.ticker) }}"
                 class="flex items-center p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition duration-200 ease-in-out transform hover:-translate-y-1">
+                <img src="/static/logos/{{ company.ticker }}.png" 
+                     alt="{{ company.name }} Logo" 
+                     class="w-12 h-12 mr-4 rounded-full object-contain bg-white p-1 shadow-sm"
+                     onerror="this.onerror=null;this.src='/static/logos/default.png';" 
+                     loading="lazy">
                 <div>
                     <p class="text-lg font-semibold text-gray-900">{{ company.name }}</p>
                     <p class="text-sm text-gray-600">{{ company.ticker }}</p>
