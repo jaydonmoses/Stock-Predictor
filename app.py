@@ -47,20 +47,26 @@ def main():
     
     if company_info:
         result = predict_next_close(ticker)
-        print(result)
         if result:
-            prediction, last_close = result
-            direction = "rise" if prediction > last_close else "fall or stay the same"
+            prediction_data, last_close, confidence_score, feature_importance, graph_data = result
+            direction = "rise" if prediction_data > last_close else "fall or stay the same"
+            confidence_pct = round(confidence_score * 100, 2)
+            
+            # Sort feature importance for display
+            feature_importance = dict(sorted(feature_importance.items(), key=lambda x: abs(x[1]), reverse=True))
         else:
             error_message = f"Could not get prediction for {ticker}. Data might be unavailable."
     else:
         error_message = f"Invalid ticker symbol: {ticker}"
     
     return render_template('main.html', 
-                         prediction=prediction,
+                         prediction=prediction_data if not error_message else None,
                          direction=direction, 
                          ticker=ticker,
                          company=company_info,
+                         confidence=confidence_pct if not error_message else None,
+                         feature_importance=feature_importance if not error_message else None,
+                         graph_data=graph_data if not error_message else None,
                          error=error_message)
 
 @app.after_request

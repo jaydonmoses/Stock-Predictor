@@ -6,12 +6,13 @@
     <title>Stock Prediction Result</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="static/css/style.css">
 
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full text-center">
+    <div class="bg-white p-8 rounded-lg shadow-xl max-w-2xl w-full text-center">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">Stock Prediction</h1>
 
         {% if error %}
@@ -28,8 +29,37 @@
             <div class="mb-8">
                 <p class="text-lg text-gray-600 mb-2">Predicted Next Close:</p>
                 <p class="text-5xl font-extrabold text-green-600 mb-4">${{ "%.2f" | format(prediction) }}</p>
-                <p class="text-xl text-gray-700">The stock is predicted to <span class="font-semibold {% if direction == 'rise' %}text-green-500{% else %}text-red-500{% endif %}">{{ direction }}</span>.</p>
+                <p class="text-xl text-gray-700">The stock is predicted to <span class="font-semibold {% if direction == 'rise' %}text-green-500{% else %}text-red-500{% endif %}">{{ direction }}</span></p>
+                <p class="text-lg text-gray-600 mt-2">Confidence: <span class="font-semibold">{{ confidence }}%</span></p>
             </div>
+
+            <!-- Stock Price Graph -->
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Price History & Prediction</h2>
+                <div id="stockChart" class="w-full h-64"></div>
+            </div>
+
+            <!-- Feature Importance -->
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Prediction Factors</h2>
+                <div class="space-y-2">
+                    {% for feature, importance in feature_importance.items() %}
+                    <div class="flex items-center">
+                        <span class="w-24 text-left text-gray-600">{{ feature }}</span>
+                        <div class="flex-grow mx-2 bg-gray-200 rounded-full h-4">
+                            <div class="bg-blue-600 h-4 rounded-full" style="width: {% if (importance * 100)|abs > 100 %}100{% else %}{{ (importance * 100)|abs }}{% endif %}%;"></div>
+                        </div>
+                        <span class="w-16 text-right text-gray-600">{{ "%.2f"|format(importance) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Initialize Plotly Chart -->
+            <script>
+                const graphData = {{ graph_data|tojson | safe }};
+                Plotly.newPlot('stockChart', graphData.data, graphData.layout);
+            </script>
         {% endif %}
 
         <a href="{{ url_for('index') }}" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
